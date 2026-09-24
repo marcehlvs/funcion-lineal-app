@@ -1,0 +1,138 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600;700&display=swap');
+
+/* Paleta compartida con estadistica-app:
+   pizarrón #1F3A34 · papel #FAF7F0 · turquesa #5FA8A0 · amarillo tiza #E8B33D */
+
+* { box-sizing: border-box; }
+body { margin: 0; padding: 20px 12px 40px; background: #16292A; }
+
+.board-app {
+  font-family: 'Inter', sans-serif;
+  background: #1F3A34;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 26px 26px;
+  border-radius: 18px;
+  padding: 28px 20px 34px;
+  color: #F5F1E8;
+  max-width: 920px;
+  margin: 0 auto;
+}
+.board-header { text-align: center; margin-bottom: 22px; position: relative; }
+.board-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 30px; margin: 0 0 6px; color: #FBF8F1; }
+.board-subtitle { font-size: 14px; color: #B9CFC7; margin: 0; }
+.solved-badge {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+  background: rgba(232,179,61,0.14); color: #F3D88A; border: 1px solid rgba(232,179,61,0.35);
+  border-radius: 999px; padding: 4px 12px; font-size: 12.5px; font-weight: 600;
+}
+
+.tabs-row { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px; }
+.chalk-tab {
+  font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 600; color: #CFE3DC;
+  background: transparent; border: 1.5px solid #3F5B54; border-radius: 999px;
+  padding: 8px 16px; cursor: pointer; transition: all 0.15s ease;
+}
+.chalk-tab:hover { border-color: #E8B33D; color: #FBF8F1; }
+.chalk-tab--active { background: #E8B33D; border-color: #E8B33D; color: #24312C; }
+
+.paper {
+  background: #FAF7F0;
+  background-image: linear-gradient(rgba(95,168,160,0.08) 1px, transparent 1px);
+  background-size: 100% 28px;
+  border-radius: 12px; padding: 22px 22px 26px; color: #24312C;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+}
+
+/* --- encabezado de ejercicio --- */
+.ex-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.ex-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; margin: 0 0 4px; color: #1F3A34; }
+.ex-prompt { font-size: 13.5px; color: #5A5142; margin: 0; max-width: 520px; line-height: 1.5; }
+.eq-big { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: #1F3A34; margin: 8px 0 12px; }
+.section-title { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; color: #1F3A34; margin: 20px 0 8px; }
+
+/* --- botones --- */
+.btn {
+  font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; border-radius: 8px;
+  padding: 8px 14px; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+}
+.btn--primary { background: #1F3A34; color: #FAF7F0; }
+.btn--primary:hover { background: #14261F; }
+.btn--primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn--ghost { background: transparent; color: #5A5142; border: 1.5px solid #D8CFB8; }
+.btn--ghost:hover { border-color: #5FA8A0; color: #1F3A34; }
+.btn--tiny { padding: 4px 9px; font-size: 11.5px; }
+.ex-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0 8px; align-items: center; }
+
+/* --- selector de modo --- */
+.seg { display: inline-flex; border: 1.5px solid #D8CFB8; border-radius: 999px; overflow: hidden; margin-bottom: 16px; flex-wrap: wrap; }
+.seg__btn { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; color: #5A5142; background: transparent; border: none; padding: 7px 16px; cursor: pointer; }
+.seg__btn:hover { color: #1F3A34; }
+.seg__btn--active { background: #1F3A34; color: #FAF7F0; }
+
+/* --- tablas y respuestas --- */
+.table-wrap { overflow-x: auto; margin-bottom: 14px; }
+.val-table { border-collapse: collapse; width: 100%; font-size: 14px; }
+.val-table th, .val-table td { text-align: center; padding: 8px 6px; border-bottom: 1px solid #E4DCC5; }
+.val-table th { font-size: 11.5px; font-weight: 700; color: #5A5142; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #1F3A34; }
+.val-table td.cell--ok { background: rgba(95,168,160,0.14); }
+.val-table td.cell--bad { background: rgba(217,108,108,0.12); }
+.val-table .x-cell { font-weight: 700; color: #1F3A34; font-variant-numeric: tabular-nums; }
+
+.ans-wrap { display: inline-flex; align-items: center; gap: 3px; }
+.ans-input { border: 1.5px solid #D8CFB8; border-radius: 6px; padding: 5px 6px; font-size: 13px; text-align: center; font-family: 'Inter', sans-serif; background: #fff; }
+.ans-input:focus { outline: none; border-color: #5FA8A0; }
+.ans-input:disabled { opacity: 0.85; }
+.ans-input--ok { border-color: #5FA8A0; background: #EEF7F5; }
+.ans-input--bad { border-color: #D96C6C; background: #FBEDED; }
+.ans-icon--ok { color: #4C8F86; }
+.ans-icon--bad { color: #C25454; }
+.ans-suffix { font-size: 12px; color: #8A8065; }
+.ans-hint { font-size: 11.5px; font-weight: 600; color: #B14E4E; margin-left: 2px; white-space: nowrap; }
+
+.line-answer { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; color: #1F3A34; }
+.answer-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 8px 0; font-size: 13.5px; }
+.answer-row__label { font-weight: 600; color: #4A4433; min-width: 200px; }
+
+/* --- retroalimentación --- */
+.feedback { font-size: 13px; font-weight: 600; margin: 8px 0 0; line-height: 1.5; }
+.feedback--ok { color: #3E7A70; }
+.feedback--bad { color: #B14E4E; }
+.feedback--info { color: #7A6A3E; }
+.note { font-size: 12.5px; color: #7A6A3E; margin: 6px 0 10px; line-height: 1.5; }
+
+/* --- desarrollo "a mano" --- */
+.hand-calc { background: #FFFDF6; border: 1.5px dashed #C9BC94; border-radius: 10px; padding: 12px 16px; margin: 10px 0 14px; font-size: 13.5px; color: #3E3A2E; }
+.hand-calc p { margin: 6px 0; line-height: 1.55; }
+.hand-calc .hc-title { font-weight: 700; color: #1F3A34; margin-top: 10px; }
+.hand-calc .hc-title:first-child { margin-top: 0; }
+.hand-calc .hc-formula { font-family: 'Fraunces', serif; font-style: italic; color: #5A5142; }
+.hand-calc .hc-note { font-size: 12.5px; color: #7A6A3E; }
+
+/* --- plano cartesiano --- */
+.plano-wrap { max-width: 460px; margin: 10px auto 6px; }
+.plano { width: 100%; height: auto; display: block; background: #fff; border: 1px solid #E4DCC5; border-radius: 10px; touch-action: none; user-select: none; }
+.plano--clickable { cursor: crosshair; }
+.plano-point--drag { cursor: grab; }
+.plano-point--drag:active { cursor: grabbing; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: 12px; color: #5A5142; margin-top: 6px; }
+.legend__item { display: inline-flex; align-items: center; gap: 6px; }
+.legend__swatch { width: 18px; height: 4px; border-radius: 2px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+@media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+/* --- desafío --- */
+.game-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #1F3A34; color: #FAF7F0; border-radius: 10px; padding: 10px 14px; margin-bottom: 14px; }
+.game-bar__group { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: 13px; font-weight: 600; }
+.game-bar__num { font-family: 'Fraunces', serif; font-size: 18px; color: #E8B33D; }
+.hearts { display: inline-flex; gap: 3px; }
+.slider-row { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 13.5px; font-weight: 600; color: #4A4433; }
+.slider-row__name { width: 26px; font-family: 'Fraunces', serif; font-size: 17px; font-style: italic; }
+.slider-row input[type=range] { flex: 1; accent-color: #E8B33D; min-width: 120px; }
+.slider-row__val { min-width: 54px; text-align: right; font-variant-numeric: tabular-nums; }
+.game-eq { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: #1F3A34; margin: 6px 0 10px; }
+.game-over { text-align: center; padding: 26px 10px; }
+.game-over h3 { font-family: 'Fraunces', serif; font-size: 24px; color: #1F3A34; margin: 0 0 6px; }
+.stars-lit { font-size: 13px; font-weight: 600; color: #7A5A12; margin: 6px 0; }
