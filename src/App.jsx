@@ -5,6 +5,7 @@ import RaizOrdenada from "./tabs/RaizOrdenada.jsx";
 import DosPuntos from "./tabs/DosPuntos.jsx";
 import ParPerp from "./tabs/ParPerp.jsx";
 import Desafio from "./tabs/Desafio.jsx";
+import HelpGateModal from "./components/HelpGateModal.jsx";
 
 const TABS = [
   { id: "tabla", label: "1 · Tabla", Component: Tabla },
@@ -44,6 +45,8 @@ export default function App() {
       <main className="paper">
         <Component key={tab} onSolved={() => setSolved((n) => n + 1)} />
       </main>
+
+      <HelpGateModal />
     </div>
   );
 }

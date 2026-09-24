@@ -136,3 +136,32 @@ body { margin: 0; padding: 20px 12px 40px; background: #16292A; }
 .game-over { text-align: center; padding: 26px 10px; }
 .game-over h3 { font-family: 'Fraunces', serif; font-size: 24px; color: #1F3A34; margin: 0 0 6px; }
 .stars-lit { font-size: 13px; font-weight: 600; color: #7A5A12; margin: 6px 0; }
+
+/* --- cuadro de contraseña de las ayudas --- */
+.gate-backdrop {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
+  background: rgba(16, 30, 28, 0.72);
+}
+.gate-card {
+  width: 100%; max-width: 340px; text-align: center; color: #24312C;
+  background: #FAF7F0; background-image: linear-gradient(rgba(95,168,160,0.08) 1px, transparent 1px);
+  background-size: 100% 28px; border-radius: 14px; padding: 26px 22px 20px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.35); font-family: 'Inter', sans-serif;
+}
+.gate-icon {
+  display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(232,179,61,0.2); color: #A97D14;
+}
+.gate-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: #1F3A34; margin: 10px 0 4px; }
+.gate-text { font-size: 13.5px; color: #5A5142; margin: 0 0 14px; line-height: 1.45; }
+.gate-input {
+  width: 100%; font-family: 'Inter', sans-serif; font-size: 16px; text-align: center; letter-spacing: 0.08em;
+  padding: 10px 12px; border: 1.5px solid #D8CFB8; border-radius: 8px; background: #fff; color: #24312C;
+}
+.gate-input:focus { outline: none; border-color: #5FA8A0; box-shadow: 0 0 0 3px rgba(95,168,160,0.22); }
+.gate-input--bad { border-color: #D96C6C; background: #FBEDED; animation: gate-shake 0.3s; }
+.gate-error { min-height: 1.5em; margin: 6px 0 10px; font-size: 12.5px; color: #B14E4E; }
+.gate-actions { display: flex; gap: 8px; }
+.gate-actions .btn { flex: 1; justify-content: center; padding: 10px 14px; font-size: 13.5px; }
+@keyframes gate-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@media (prefers-reduced-motion: reduce) { .gate-input--bad { animation: none; } }

@@ -1,0 +1,173 @@
+diff --git a/src/App.jsx b/src/App.jsx
+index a7b90c9..0be4e4a 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -5,6 +5,7 @@ import RaizOrdenada from "./tabs/RaizOrdenada.jsx";
+ import DosPuntos from "./tabs/DosPuntos.jsx";
+ import ParPerp from "./tabs/ParPerp.jsx";
+ import Desafio from "./tabs/Desafio.jsx";
++import HelpGateModal from "./components/HelpGateModal.jsx";
+ 
+ const TABS = [
+   { id: "tabla", label: "1 · Tabla", Component: Tabla },
+@@ -44,6 +45,8 @@ export default function App() {
+       <main className="paper">
+         <Component key={tab} onSolved={() => setSolved((n) => n + 1)} />
+       </main>
++
++      <HelpGateModal />
+     </div>
+   );
+ }
+diff --git a/src/components/HelpGateModal.jsx b/src/components/HelpGateModal.jsx
+new file mode 100644
+index 0000000..7058708
+--- /dev/null
++++ b/src/components/HelpGateModal.jsx
+@@ -0,0 +1,58 @@
++import { useEffect, useRef, useState, useSyncExternalStore } from "react";
++import { Lock } from "lucide-react";
++import { cancelUnlock, getPending, subscribe, tryUnlock } from "../helpGate";
++
++/* Cuadro de contraseña para las ayudas. Se monta una sola vez en App. */
++
++function GateForm() {
++  const [pw, setPw] = useState("");
++  const [bad, setBad] = useState(false);
++  const input = useRef(null);
++
++  useEffect(() => {
++    const onKey = (e) => e.key === "Escape" && cancelUnlock();
++    window.addEventListener("keydown", onKey);
++    return () => window.removeEventListener("keydown", onKey);
++  }, []);
++
++  const submit = (e) => {
++    e.preventDefault();
++    if (!tryUnlock(pw)) {
++      setBad(true);
++      setPw("");
++      input.current?.focus();
++    }
++  };
++
++  return (
++    <div className="gate-backdrop" onMouseDown={(e) => e.target === e.currentTarget && cancelUnlock()}>
++      <form className="gate-card" onSubmit={submit} role="dialog" aria-modal="true" aria-labelledby="gate-title">
++        <span className="gate-icon"><Lock size={20} /></span>
++        <h2 id="gate-title" className="gate-title">Ayuda bloqueada</h2>
++        <p className="gate-text">El desarrollo paso a paso lo habilita el docente.</p>
++        <input
++          ref={input}
++          autoFocus
++          type="password"
++          className={`gate-input ${bad ? "gate-input--bad" : ""}`}
++          value={pw}
++          onChange={(e) => { setPw(e.target.value); setBad(false); }}
++          placeholder="Contraseña"
++          aria-label="Contraseña del docente"
++          aria-invalid={bad}
++          autoComplete="off"
++        />
++        <p className="gate-error" role="alert">{bad ? "Contraseña incorrecta. Probá de nuevo." : ""}</p>
++        <div className="gate-actions">
++          <button type="button" className="btn btn--ghost" onClick={cancelUnlock}>Cancelar</button>
++          <button type="submit" className="btn btn--primary" disabled={!pw}>Desbloquear</button>
++        </div>
++      </form>
++    </div>
++  );
++}
++
++export default function HelpGateModal() {
++  const open = useSyncExternalStore(subscribe, getPending) !== null;
++  return open ? <GateForm /> : null;
++}
+diff --git a/src/helpGate.js b/src/helpGate.js
+index ebed4f0..5dce435 100644
+--- a/src/helpGate.js
++++ b/src/helpGate.js
+@@ -2,17 +2,37 @@ import { HELP_LOCK, HELP_PASSWORD } from "./config";
+ 
+ /* Una vez ingresada la contraseña, las ayudas quedan libres hasta recargar la página. */
+ let unlocked = false;
++/* Acción pendiente mientras el cuadro de contraseña está abierto (null = cerrado). */
++let pending = null;
++const listeners = new Set();
++const emit = () => listeners.forEach((f) => f());
+ 
+-/** Alterna una ayuda. Ocultarla es libre; mostrarla pide contraseña si HELP_LOCK está activo. */
++export const subscribe = (f) => {
++  listeners.add(f);
++  return () => listeners.delete(f);
++};
++export const getPending = () => pending;
++
++/** Alterna una ayuda. Ocultarla es libre; mostrarla abre el cuadro de contraseña si HELP_LOCK está activo. */
+ export function toggleHelp(shown, setShown) {
+   if (shown) return setShown(false);
+   if (!HELP_LOCK || unlocked) return setShown(true);
+-  const p = window.prompt("Ayuda bloqueada. Ingresá la contraseña del docente:");
+-  if (p === null) return;
+-  if (p.trim() === HELP_PASSWORD) {
+-    unlocked = true;
+-    setShown(true);
+-  } else {
+-    window.alert("Contraseña incorrecta.");
+-  }
++  pending = () => setShown(true);
++  emit();
++}
++
++export function cancelUnlock() {
++  pending = null;
++  emit();
++}
++
++/** Devuelve true (y muestra la ayuda pedida) si la contraseña es correcta. */
++export function tryUnlock(pw) {
++  if (pw.trim() !== HELP_PASSWORD) return false;
++  unlocked = true;
++  const go = pending;
++  pending = null;
++  emit();
++  go?.();
++  return true;
+ }
+diff --git a/src/styles.css b/src/styles.css
+index 22279ef..2adeb4c 100644
+--- a/src/styles.css
++++ b/src/styles.css
+@@ -136,3 +136,32 @@ body { margin: 0; padding: 20px 12px 40px; background: #16292A; }
+ .game-over { text-align: center; padding: 26px 10px; }
+ .game-over h3 { font-family: 'Fraunces', serif; font-size: 24px; color: #1F3A34; margin: 0 0 6px; }
+ .stars-lit { font-size: 13px; font-weight: 600; color: #7A5A12; margin: 6px 0; }
++
++/* --- cuadro de contraseña de las ayudas --- */
++.gate-backdrop {
++  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 16px;
++  background: rgba(16, 30, 28, 0.72);
++}
++.gate-card {
++  width: 100%; max-width: 340px; text-align: center; color: #24312C;
++  background: #FAF7F0; background-image: linear-gradient(rgba(95,168,160,0.08) 1px, transparent 1px);
++  background-size: 100% 28px; border-radius: 14px; padding: 26px 22px 20px;
++  box-shadow: 0 12px 36px rgba(0,0,0,0.35); font-family: 'Inter', sans-serif;
++}
++.gate-icon {
++  display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
++  background: rgba(232,179,61,0.2); color: #A97D14;
++}
++.gate-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: #1F3A34; margin: 10px 0 4px; }
++.gate-text { font-size: 13.5px; color: #5A5142; margin: 0 0 14px; line-height: 1.45; }
++.gate-input {
++  width: 100%; font-family: 'Inter', sans-serif; font-size: 16px; text-align: center; letter-spacing: 0.08em;
++  padding: 10px 12px; border: 1.5px solid #D8CFB8; border-radius: 8px; background: #fff; color: #24312C;
++}
++.gate-input:focus { outline: none; border-color: #5FA8A0; box-shadow: 0 0 0 3px rgba(95,168,160,0.22); }
++.gate-input--bad { border-color: #D96C6C; background: #FBEDED; animation: gate-shake 0.3s; }
++.gate-error { min-height: 1.5em; margin: 6px 0 10px; font-size: 12.5px; color: #B14E4E; }
++.gate-actions { display: flex; gap: 8px; }
++.gate-actions .btn { flex: 1; justify-content: center; padding: 10px 14px; font-size: 13.5px; }
++@keyframes gate-shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
++@media (prefers-reduced-motion: reduce) { .gate-input--bad { animation: none; } }

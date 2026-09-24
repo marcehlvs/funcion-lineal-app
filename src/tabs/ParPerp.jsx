@@ -1,3 +1,4 @@
+import { toggleHelp } from "../helpGate";
 import { useState } from "react";
 import { RotateCcw, Eye, EyeOff } from "lucide-react";
 import Plano from "../components/Plano.jsx";
@@ -99,7 +100,7 @@ function Ejercicio({ onNext, onSolved }) {
 
       <div className="ex-actions">
         <button className="btn btn--primary" onClick={check}>Verificar</button>
-        <button className="btn btn--ghost" onClick={() => setShowDev((v) => !v)}>
+        <button className="btn btn--ghost" onClick={() => toggleHelp(showDev, setShowDev)}>
           {showDev ? <EyeOff size={14} /> : <Eye size={14} />} {showDev ? "ocultar desarrollo" : "ver desarrollo"}
         </button>
       </div>

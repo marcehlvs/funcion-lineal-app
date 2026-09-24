@@ -1,0 +1,116 @@
+diff --git a/src/config.js b/src/config.js
+new file mode 100644
+index 0000000..8e39bb0
+--- /dev/null
++++ b/src/config.js
+@@ -0,0 +1,5 @@
++/* Configuración del docente.
++   HELP_LOCK = true  -> "ver desarrollo" / "ver las cuentas" piden contraseña.
++   HELP_LOCK = false -> las ayudas quedan libres para todos. */
++export const HELP_LOCK = true;
++export const HELP_PASSWORD = "qEms-hZYt";
+diff --git a/src/helpGate.js b/src/helpGate.js
+new file mode 100644
+index 0000000..ebed4f0
+--- /dev/null
++++ b/src/helpGate.js
+@@ -0,0 +1,18 @@
++import { HELP_LOCK, HELP_PASSWORD } from "./config";
++
++/* Una vez ingresada la contraseña, las ayudas quedan libres hasta recargar la página. */
++let unlocked = false;
++
++/** Alterna una ayuda. Ocultarla es libre; mostrarla pide contraseña si HELP_LOCK está activo. */
++export function toggleHelp(shown, setShown) {
++  if (shown) return setShown(false);
++  if (!HELP_LOCK || unlocked) return setShown(true);
++  const p = window.prompt("Ayuda bloqueada. Ingresá la contraseña del docente:");
++  if (p === null) return;
++  if (p.trim() === HELP_PASSWORD) {
++    unlocked = true;
++    setShown(true);
++  } else {
++    window.alert("Contraseña incorrecta.");
++  }
++}
+diff --git a/src/tabs/DosPuntos.jsx b/src/tabs/DosPuntos.jsx
+index f387ae4..7a4ad74 100644
+--- a/src/tabs/DosPuntos.jsx
++++ b/src/tabs/DosPuntos.jsx
+@@ -1,3 +1,4 @@
++import { toggleHelp } from "../helpGate";
+ import { useState } from "react";
+ import { RotateCcw, Eye, EyeOff } from "lucide-react";
+ import Plano from "../components/Plano.jsx";
+@@ -157,7 +158,7 @@ function Ejercicio({ onNext, onSolved }) {
+       )}
+ 
+       <div className="ex-actions">
+-        <button className="btn btn--ghost" onClick={() => setShowDev((v) => !v)}>
++        <button className="btn btn--ghost" onClick={() => toggleHelp(showDev, setShowDev)}>
+           {showDev ? <EyeOff size={14} /> : <Eye size={14} />} {showDev ? "ocultar desarrollo" : "ver desarrollo"}
+         </button>
+         {stage === 2 && <button className="btn btn--primary" onClick={onNext}>Siguiente</button>}
+diff --git a/src/tabs/ParPerp.jsx b/src/tabs/ParPerp.jsx
+index 8863d60..fbb306a 100644
+--- a/src/tabs/ParPerp.jsx
++++ b/src/tabs/ParPerp.jsx
+@@ -1,3 +1,4 @@
++import { toggleHelp } from "../helpGate";
+ import { useState } from "react";
+ import { RotateCcw, Eye, EyeOff } from "lucide-react";
+ import Plano from "../components/Plano.jsx";
+@@ -99,7 +100,7 @@ function Ejercicio({ onNext, onSolved }) {
+ 
+       <div className="ex-actions">
+         <button className="btn btn--primary" onClick={check}>Verificar</button>
+-        <button className="btn btn--ghost" onClick={() => setShowDev((v) => !v)}>
++        <button className="btn btn--ghost" onClick={() => toggleHelp(showDev, setShowDev)}>
+           {showDev ? <EyeOff size={14} /> : <Eye size={14} />} {showDev ? "ocultar desarrollo" : "ver desarrollo"}
+         </button>
+       </div>
+diff --git a/src/tabs/RaizOrdenada.jsx b/src/tabs/RaizOrdenada.jsx
+index 5721556..bd0ae91 100644
+--- a/src/tabs/RaizOrdenada.jsx
++++ b/src/tabs/RaizOrdenada.jsx
+@@ -1,3 +1,4 @@
++import { toggleHelp } from "../helpGate";
+ import { useState } from "react";
+ import { RotateCcw, Eye, EyeOff } from "lucide-react";
+ import Plano from "../components/Plano.jsx";
+@@ -75,7 +76,7 @@ function HallarCortes({ onNext, onSolved }) {
+ 
+       <div className="ex-actions">
+         <button className="btn btn--primary" onClick={check}>Verificar</button>
+-        <button className="btn btn--ghost" onClick={() => setShowDev((v) => !v)}>
++        <button className="btn btn--ghost" onClick={() => toggleHelp(showDev, setShowDev)}>
+           {showDev ? <EyeOff size={14} /> : <Eye size={14} />} {showDev ? "ocultar desarrollo" : "ver desarrollo"}
+         </button>
+       </div>
+@@ -173,7 +174,7 @@ function ArmarEcuacion({ onNext, onSolved }) {
+ 
+       <div className="ex-actions">
+         <button className="btn btn--primary" onClick={check}>Verificar</button>
+-        <button className="btn btn--ghost" onClick={() => setShowDev((v) => !v)}>
++        <button className="btn btn--ghost" onClick={() => toggleHelp(showDev, setShowDev)}>
+           {showDev ? <EyeOff size={14} /> : <Eye size={14} />} {showDev ? "ocultar desarrollo" : "ver desarrollo"}
+         </button>
+       </div>
+diff --git a/src/tabs/Tabla.jsx b/src/tabs/Tabla.jsx
+index 10015c6..a976684 100644
+--- a/src/tabs/Tabla.jsx
++++ b/src/tabs/Tabla.jsx
+@@ -1,3 +1,4 @@
++import { toggleHelp } from "../helpGate";
+ import { useState } from "react";
+ import { RotateCcw, Eye, EyeOff } from "lucide-react";
+ import Plano from "../components/Plano.jsx";
+@@ -107,7 +108,7 @@ function TablaEjercicio({ onNext, onSolved }) {
+ 
+       <div className="ex-actions">
+         <button className="btn btn--primary" onClick={() => setTableChecked(true)}>Verificar tabla</button>
+-        <button className="btn btn--ghost" onClick={() => setShowHelp((v) => !v)}>
++        <button className="btn btn--ghost" onClick={() => toggleHelp(showHelp, setShowHelp)}>
+           {showHelp ? <EyeOff size={14} /> : <Eye size={14} />} {showHelp ? "ocultar cuentas" : "ver las cuentas"}
+         </button>
+       </div>
