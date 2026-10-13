@@ -77,3 +77,27 @@ export function Legend({ items }) {
     </div>
   );
 }
+
+/**
+ * Botones para elegir una opción (p.d. / p.i. / ninguna, etc.).
+ * options: [{ id, label }]   value: id elegido o null
+ */
+export function OptionPicker({ options, value, onChange, disabled = false, label }) {
+  return (
+    <div className="seg" role="radiogroup" aria-label={label}>
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          role="radio"
+          aria-checked={value === o.id}
+          className={`seg__btn ${value === o.id ? "seg__btn--active" : ""}`}
+          onClick={() => onChange(o.id)}
+          disabled={disabled}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}

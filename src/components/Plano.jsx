@@ -5,6 +5,8 @@ import { PLANE_R } from "../math/generators.js";
 /* Plano cartesiano en SVG.
  *
  * lines:  [{ line, color, dashed }]   line viene de math/line.js (fracciones)
+ * curves: [{ pts: [{x, y}], color, dashed }]   curvas dibujadas punto a punto (hipérbolas, parábolas)
+ * positivo: true → solo se muestra el primer cuadrante (x e y de 0 a R), para 1er año
  * points: [{ id, x, y, color, label, shape: "dot" | "star", lit, draggable }]
  *         x e y son NÚMEROS (el llamador convierte con toNumber)
  * onPlaneClick({x, y})       → tocar la cuadrícula (coordenadas enteras)
@@ -29,6 +31,8 @@ function starPoints(cx, cy, outer = 12, inner = 5) {
 
 export default function Plano({
   lines = [],
+  curves = [],
+  positivo = false,
   points = [],
   onPlaneClick,
   onPointMove,
@@ -40,16 +44,20 @@ export default function Plano({
   const [hover, setHover] = useState(null);
   const [dragId, setDragId] = useState(null);
 
-  const px = (x) => PAD + ((x + R) / (2 * R)) * INNER;
-  const py = (y) => PAD + ((R - y) / (2 * R)) * INNER;
+  // lo = valor mínimo de ambos ejes (−R, o 0 si solo se muestra el primer cuadrante)
+  const lo = positivo ? 0 : -R;
+  const span = R - lo;
+
+  const px = (x) => PAD + ((x - lo) / span) * INNER;
+  const py = (y) => PAD + ((R - y) / span) * INNER;
 
   const toPlane = (e) => {
     const rect = svgRef.current.getBoundingClientRect();
     const sx = ((e.clientX - rect.left) / rect.width) * S;
     const sy = ((e.clientY - rect.top) / rect.height) * S;
-    return { x: ((sx - PAD) / INNER) * 2 * R - R, y: R - ((sy - PAD) / INNER) * 2 * R };
+    return { x: lo + ((sx - PAD) / INNER) * span, y: R - ((sy - PAD) / INNER) * span };
   };
-  const snap = (p) => ({ x: clamp(Math.round(p.x), -R, R), y: clamp(Math.round(p.y), -R, R) });
+  const snap = (p) => ({ x: clamp(Math.round(p.x), lo, R), y: clamp(Math.round(p.y), lo, R) });
 
   const handleMove = (e) => {
     if (dragId !== null) {
@@ -60,7 +68,7 @@ export default function Plano({
   };
 
   const ticks = [];
-  for (let i = -R; i <= R; i++) ticks.push(i);
+  for (let i = lo; i <= R; i++) ticks.push(i);
   const labelStep = R > 6 ? 2 : 1;
 
   return (
@@ -96,8 +104,8 @@ export default function Plano({
 
         {/* ejes con flecha */}
         <g stroke="#5A5142" strokeWidth="1.6" fill="#5A5142">
-          <line x1={PAD - 6} y1={py(0)} x2={S - PAD + 6} y2={py(0)} />
-          <line x1={px(0)} y1={S - PAD + 6} x2={px(0)} y2={PAD - 6} />
+          <line x1={positivo ? PAD : PAD - 6} y1={py(0)} x2={S - PAD + 6} y2={py(0)} />
+          <line x1={px(0)} y1={positivo ? S - PAD : S - PAD + 6} x2={px(0)} y2={PAD - 6} />
           <polygon points={`${S - PAD + 10},${py(0)} ${S - PAD + 1},${py(0) - 4} ${S - PAD + 1},${py(0) + 4}`} />
           <polygon points={`${px(0)},${PAD - 10} ${px(0) - 4},${PAD - 1} ${px(0) + 4},${PAD - 1}`} />
         </g>
@@ -115,18 +123,30 @@ export default function Plano({
           <text x={px(0) + 9} y={14} fontStyle="italic" fill="#5A5142" fontSize="13">y</text>
         </g>
 
-        {/* rectas (recortadas al recuadro) */}
+        {/* rectas y curvas (recortadas al recuadro) */}
         <g clipPath={`url(#${clipId})`}>
           {lines.map(({ line, color = "#1F3A34", dashed = false }, i) => {
             const stroke = { stroke: color, strokeWidth: 3, strokeLinecap: "round", strokeDasharray: dashed ? "8 6" : undefined };
             if (line.kind === "vertical") {
               const x = toNumber(line.x);
-              return <line key={i} x1={px(x)} y1={py(-R - 1)} x2={px(x)} y2={py(R + 1)} {...stroke} />;
+              return <line key={i} x1={px(x)} y1={py(lo - 1)} x2={px(x)} y2={py(R + 1)} {...stroke} />;
             }
             const m = toNumber(line.m);
             const b = toNumber(line.b);
-            return <line key={i} x1={px(-R - 1)} y1={py(m * (-R - 1) + b)} x2={px(R + 1)} y2={py(m * (R + 1) + b)} {...stroke} />;
+            return <line key={i} x1={px(lo - 1)} y1={py(m * (lo - 1) + b)} x2={px(R + 1)} y2={py(m * (R + 1) + b)} {...stroke} />;
           })}
+          {curves.map(({ pts, color = "#1F3A34", dashed = false }, i) => (
+            <polyline
+              key={`c${i}`}
+              points={pts.map((p) => `${px(p.x).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ")}
+              fill="none"
+              stroke={color}
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeDasharray={dashed ? "8 6" : undefined}
+            />
+          ))}
         </g>
 
         {/* fantasma del punto que se va a ubicar */}
@@ -139,6 +159,10 @@ export default function Plano({
           const cx = px(p.x);
           const cy = py(p.y);
           const color = p.color ?? "#1F3A34";
+          // cerca del borde derecho el rótulo se pone a la izquierda del punto para que no se corte
+          const flip = cx > S - 78;
+          const lx = flip ? cx - 10 : cx + 10;
+          const anchor = flip ? "end" : "start";
           const drag = p.draggable ? { className: "plano-point--drag", onPointerDown: (e) => { e.stopPropagation(); setDragId(p.id); e.currentTarget.ownerSVGElement?.setPointerCapture?.(e.pointerId); } } : {};
           return (
             <g key={p.id} {...drag}>
@@ -159,8 +183,8 @@ export default function Plano({
               {p.label && (
                 <g fontSize="12" fontWeight="700" fontFamily="Inter, sans-serif" pointerEvents="none">
                   {/* halo blanco debajo + texto de color encima (funciona en todos los renderizadores) */}
-                  <text x={cx + 10} y={cy - 9} fill="#fff" stroke="#fff" strokeWidth="4" strokeLinejoin="round" aria-hidden="true">{p.label}</text>
-                  <text x={cx + 10} y={cy - 9} fill={color}>{p.label}</text>
+                  <text x={lx} y={cy - 9} textAnchor={anchor} fill="#fff" stroke="#fff" strokeWidth="4" strokeLinejoin="round" aria-hidden="true">{p.label}</text>
+                  <text x={lx} y={cy - 9} textAnchor={anchor} fill={color}>{p.label}</text>
                 </g>
               )}
             </g>
